@@ -4,9 +4,6 @@ namespace App\Services;
 
 class CapitalGainsCalculatorService
 {
-    /**
-     * Coeficientes de desvalorização da moeda (Baseado na Portaria para 2024/2025)
-     */
     private const COEFFICIENTS = [
         2025 => 1.00, 2024 => 1.00, 2023 => 1.00, 2022 => 1.04, 2021 => 1.13,
         2020 => 1.14, 2019 => 1.14, 2018 => 1.14, 2017 => 1.15, 2016 => 1.16,
@@ -18,10 +15,6 @@ class CapitalGainsCalculatorService
         1990 => 2.63
     ];
 
-    /**
-     * Escalões de IRS 2025 (Continente)
-     * Taxas normais e parcela a abater aproximada para cálculo direto
-     */
     private const IRS_BRACKETS_2025 = [
         ['limit' => 8059,  'rate' => 0.1250, 'deduction' => 0.00],
         ['limit' => 12160, 'rate' => 0.1600, 'deduction' => 282.07],
@@ -36,25 +29,16 @@ class CapitalGainsCalculatorService
 
     public function calculate(array $data): array
     {
-        // 1. Extração e Normalização de Dados
         $saleValue = (float) $data['sale_value'];
         $acquisitionValue = (float) $data['acquisition_value'];
         $acquisitionYear = (int) $data['acquisition_year'];
-        $expenses = (float) ($data['expenses_total'] ?? 0); // Já somado no Controller
+        $expenses = (float) ($data['expenses_total'] ?? 0);
 
-        // 2. Atualização Monetária (Coeficiente)
-        // Se ano < 1901 ou não listado, usa o mais antigo/alto (2.63 ou superior fictício se necessário)
-        // Aqui assumimos 2.63 para <=1990 como base segura da lista
         $coefficient = self::COEFFICIENTS[$acquisitionYear] ?? ($acquisitionYear < 1990 ? 2.63 : 1.00);
         $updatedAcquisitionValue = $acquisitionValue * $coefficient;
 
-        // 3. Cálculo da Mais-Valia Bruta
-        // Fórmula: Venda - (Compra * Coef) - Despesas
         $grossGain = $saleValue - $updatedAcquisitionValue - $expenses;
 
-        // --- LÓGICA DE DECISÃO DE TRIBUTAÇÃO ---
-
-        // Cenário A: Venda ao Estado (Isenção Total, mas mostra o lucro)
         if (isset($data['sold_to_state']) && $data['sold_to_state'] === 'Sim') {
             return $this->buildResult(
                 $saleValue, $updatedAcquisitionValue, $expenses, 0, $grossGain, 0, 0, $coefficient, 
@@ -62,7 +46,6 @@ class CapitalGainsCalculatorService
             );
         }
 
-        // Cenário B: Imóvel Adquirido antes de 1989 (Isenção Total)
         if ($acquisitionYear < 1989) {
             return $this->buildResult(
                 $saleValue, $updatedAcquisitionValue, $expenses, 0, $grossGain, 0, 0, $coefficient, 
@@ -70,7 +53,6 @@ class CapitalGainsCalculatorService
             );
         }
 
-        // Cenário C: Menos-Valia (Prejuízo)
         if ($grossGain <= 0) {
             return $this->buildResult(
                 $saleValue, $updatedAcquisitionValue, $expenses, 0, $grossGain, 0, 0, $coefficient, 
@@ -78,11 +60,9 @@ class CapitalGainsCalculatorService
             );
         }
 
-        // Cenário D: Tributável (Com possíveis deduções de reinvestimento)
         $taxableGainBase = $grossGain;
         $reinvestmentValue = 0.0;
 
-        // Só aplica reinvestimento/amortização se for HPP há mais de 12 meses
         if (isset($data['hpp_status']) && ($data['hpp_status'] === 'Sim' || $data['hpp_status'] === 'Menos12Meses')) {
             $reinvest = ($data['reinvest_intention'] === 'Sim') ? (float) ($data['reinvestment_amount'] ?? 0) : 0;
             $amortize = ($data['amortize_credit'] === 'Sim') ? (float) ($data['amortization_amount'] ?? 0) : 0;
@@ -90,19 +70,15 @@ class CapitalGainsCalculatorService
             $reinvestmentValue = $reinvest + $amortize;
 
             if ($reinvestmentValue >= $saleValue) {
-                // Se reinvestiu tudo (ou mais), isenção total
                 $taxableGainBase = 0;
             } elseif ($reinvestmentValue > 0) {
-                // Isenção Proporcional: (Venda - Reinvestido) / Venda
                 $nonExemptRatio = ($saleValue - $reinvestmentValue) / $saleValue;
                 $taxableGainBase = $grossGain * $nonExemptRatio;
             }
         }
 
-        // Regra de Englobamento: Tributação sobre 50% do saldo apurado
-        $taxableGain = $taxableGainBase * 0.50;
+        $taxableGain = $taxableGainBase;
 
-        // 4. Cálculo do IRS (Taxa Efetiva)
         $annualIncome = (float) ($data['annual_income'] ?? 0);
         $isJoint = isset($data['joint_tax_return']) && $data['joint_tax_return'] === 'Sim';
         
@@ -121,31 +97,21 @@ class CapitalGainsCalculatorService
         );
     }
 
-    /**
-     * Calcula o imposto "extra" gerado pela mais-valia.
-     * IRS(Rendimento + MaisValia) - IRS(Rendimento)
-     */
     private function calculateEstimatedTax(float $gain, float $income, bool $isJoint): float
     {
         if ($gain <= 0) return 0;
 
-        // Se for conjunta, divide o rendimento por 2 para achar a taxa (splitting)
         $incomeBase = $isJoint ? ($income / 2) : $income;
         $incomeWithGain = $isJoint ? (($income + $gain) / 2) : ($income + $gain);
 
         $taxBase = $this->calculateIRS($incomeBase);
         $taxFinal = $this->calculateIRS($incomeWithGain);
 
-        // A diferença é o imposto imputável à mais-valia
         $taxDiff = max(0, $taxFinal - $taxBase);
 
-        // Se for conjunta, multiplica o imposto final por 2
         return $isJoint ? $taxDiff * 2 : $taxDiff;
     }
 
-    /**
-     * Aplica as tabelas progressivas de IRS
-     */
     private function calculateIRS(float $income): float
     {
         if ($income <= 0) return 0;
@@ -156,13 +122,9 @@ class CapitalGainsCalculatorService
             }
         }
         
-        // Fallback (teoricamente nunca atinge devido ao INF)
         return 0;
     }
 
-    /**
-     * Formata os resultados para apresentação (Strings formatadas PT)
-     */
     private function buildResult($sale, $acqUpd, $exp, $reinvest, $gross, $taxable, $tax, $coef, $status): array
     {
         return [
@@ -175,7 +137,6 @@ class CapitalGainsCalculatorService
             'taxable_gain_fmt' => number_format($taxable, 2, ',', '.'),
             'estimated_tax_fmt' => number_format($tax, 2, ',', '.'),
             'status' => $status,
-            // Valores brutos caso precise de lógica no JS
             'raw_tax' => $tax,
             'raw_gross' => $gross
         ];
