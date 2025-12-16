@@ -70,11 +70,9 @@ class CapitalGainsCalculatorService
         // CORREÇÃO 1: Isenção por reinvestimento (Aplica-se apenas a HPP >= 12 meses)
         if (($data['hpp_status'] ?? 'Não') === 'Sim') {
             
-            // FIX do 500: Usa ?? 'Não' para garantir que as chaves condicionais existem.
             $reinvestIntention = $data['reinvest_intention'] ?? 'Não';
             $amortizeCredit = $data['amortize_credit'] ?? 'Não';
             
-            // FIX do 500: Usa ?? 0 para garantir que o valor numérico é zero se for nulo ou ausente.
             $reinvest = ($reinvestIntention === 'Sim') ? (float) ($data['reinvestment_amount'] ?? 0) : 0;
             $amortize = ($amortizeCredit === 'Sim') ? (float) ($data['amortization_amount'] ?? 0) : 0;
             
@@ -89,10 +87,9 @@ class CapitalGainsCalculatorService
             }
         }
 
-        // ALTERAÇÃO SOLICITADA: Remove a isenção de 50%. A base tributável é 100% do ganho não isento.
-        $taxableGain = $taxableGainBase;
+        // REVERSÃO: Aplicamos a regra padrão do IRS: apenas 50% do ganho (ou do ganho não isento) é tributável.
+        $taxableGain = $taxableGainBase * 0.5;
 
-        // FIX do 500: Usa ?? 0 para garantir que o valor numérico existe.
         $annualIncome = (float) ($data['annual_income'] ?? 0);
         $isJoint = ($data['joint_tax_return'] ?? 'Não') === 'Sim';
         
