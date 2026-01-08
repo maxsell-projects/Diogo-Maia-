@@ -23,18 +23,25 @@
     </div>
 </div>
 
-<div class="fixed bottom-0 left-0 w-full z-40 xl:hidden bg-brand-black/98 border-t border-white/10 px-4 py-3 backdrop-blur-lg">
-    <div class="flex items-center gap-6 overflow-x-auto scrollbar-hide">
-        <div class="flex-none">
-            <span class="text-[8px] font-bold uppercase tracking-tighter text-brand-gold border-r border-white/20 pr-3">Awards</span>
+<div class="fixed bottom-0 left-0 w-full z-40 xl:hidden bg-brand-black/98 border-t border-white/10 backdrop-blur-xl">
+    <div class="relative flex items-center px-4 py-4 pb-6 md:pb-4">
+        
+        <div class="flex-none bg-brand-black pr-4 z-10 border-r border-white/10">
+            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-brand-gold italic">Awards</span>
         </div>
-        <div class="flex gap-8 items-center">
-            @foreach($awards as $image)
-                <img src="{{ asset('img/awards/' . $image) }}" 
-                     alt="Award" 
-                     class="h-8 w-auto object-contain flex-none"
-                     onerror="this.style.display='none'">
-            @endforeach
+
+        <div class="flex-grow relative overflow-hidden ml-4">
+            <div class="flex gap-10 items-center overflow-x-auto scrollbar-hide snap-x">
+                @foreach($awards as $image)
+                    <div class="flex-none snap-center">
+                        <img src="{{ asset('img/awards/' . $image) }}" 
+                             alt="Award" 
+                             class="h-9 w-auto object-contain brightness-125 grayscale hover:grayscale-0 transition-all duration-300"
+                             onerror="this.style.display='none'">
+                    </div>
+                @endforeach
+                <div class="flex-none w-4"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -44,6 +51,15 @@
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     
-    /* Ajuste de brilho para garantir que o branco brilhe no fundo preto */
-    .filter.brightness-110 { filter: brightness(1.1); }
+    /* Suaviza o snap de scroll no mobile */
+    .snap-x {
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Brilho extra para os logos no mobile */
+    .brightness-125 {
+        filter: brightness(1.25) contrast(1.1);
+    }
 </style>
