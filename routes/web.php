@@ -5,6 +5,7 @@ use App\Models\Property;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ToolsController;
+use App\Http\Controllers\ContactController;
 
 Route::get('/', function () {
     $properties = Property::where('is_visible', true)->latest()->take(3)->get(); 
@@ -25,6 +26,8 @@ Route::get('/ferramentas/simulador-credito', function () {
 Route::get('/ferramentas/imt', function () {
     return view('tools.imt');
 })->name('tools.imt');
+
+Route::post('/contato/enviar', [ContactController::class, 'send'])->name('contact.send');
 
 // Rota antiga (comentei para evitar conflito com a de baixo)
 // Route::get('/ferramentas/mais-valias', function () {

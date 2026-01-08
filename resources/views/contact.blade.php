@@ -58,14 +58,15 @@
                     </div>
                 </div>
 
-                <div class="w-full h-64 bg-gray-200 rounded overflow-hidden grayscale hover:grayscale-0 transition duration-700">
+                <div class="w-full h-64 bg-gray-200 rounded overflow-hidden grayscale hover:grayscale-0 transition duration-700 shadow-inner">
                     <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3113.513534867376!2d-9.147772623681536!3d38.71813955802526!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd1c337b5c3208e9%3A0x6739462279075727!2sAv.%20da%20Liberdade%20110%2C%201250-146%20Lisboa%2C%20Portugal!5e0!3m2!1spt-PT!2sbr!4v1709123456789!5m2!1spt-PT!2sbr" 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3112.83968252277!2d-9.147137523455122!3d38.73295847175955!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd19331245089309%3A0xc3c544d67362399d!2sAv.%20Casal%20Ribeiro%2012B%2C%201000-092%20Lisboa!5e0!3m2!1spt-PT!2spt!4v1704720000000!5m2!1spt-PT!2spt" 
                         width="100%" 
                         height="100%" 
                         style="border:0;" 
                         allowfullscreen="" 
-                        loading="lazy">
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
                     </iframe>
                 </div>
             </div>
@@ -73,12 +74,18 @@
             <div class="bg-gray-50 p-8 md:p-10 rounded border border-gray-100 shadow-lg">
                 <h3 class="text-2xl font-serif text-brand-black mb-6">Envie uma Mensagem</h3>
                 
-                <form action="#" method="POST" class="space-y-6">
+                @if(session('success'))
+                    <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 text-sm">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                <form action="{{ route('contact.send') }}" method="POST" class="space-y-6">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Nome</label>
-                            <input type="text" name="name" class="w-full bg-white border border-gray-200 rounded px-4 py-3 focus:outline-none focus:border-brand-gold transition-colors" placeholder="Seu nome">
+                            <input type="text" name="name" required class="w-full bg-white border border-gray-200 rounded px-4 py-3 focus:outline-none focus:border-brand-gold transition-colors" placeholder="Seu nome">
                         </div>
                         <div>
                             <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Telefone</label>
@@ -88,22 +95,22 @@
 
                     <div>
                         <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Email</label>
-                        <input type="email" name="email" class="w-full bg-white border border-gray-200 rounded px-4 py-3 focus:outline-none focus:border-brand-gold transition-colors" placeholder="seu@email.com">
+                        <input type="email" name="email" required class="w-full bg-white border border-gray-200 rounded px-4 py-3 focus:outline-none focus:border-brand-gold transition-colors" placeholder="seu@email.com">
                     </div>
 
                     <div>
                         <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Assunto</label>
                         <select name="subject" class="w-full bg-white border border-gray-200 rounded px-4 py-3 focus:outline-none focus:border-brand-gold transition-colors text-gray-600">
-                            <option>Interesse em Comprar</option>
-                            <option>Vender Propriedade</option>
-                            <option>Parcerias / Investimento</option>
-                            <option>Outros Assuntos</option>
+                            <option value="Interesse em Comprar">Interesse em Comprar</option>
+                            <option value="Vender Propriedade">Vender Propriedade</option>
+                            <option value="Parcerias / Investimento">Parcerias / Investimento</option>
+                            <option value="Outros Assuntos">Outros Assuntos</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Mensagem</label>
-                        <textarea name="message" rows="5" class="w-full bg-white border border-gray-200 rounded px-4 py-3 focus:outline-none focus:border-brand-gold transition-colors resize-none" placeholder="Como podemos ajudar?"></textarea>
+                        <textarea name="message" rows="5" required class="w-full bg-white border border-gray-200 rounded px-4 py-3 focus:outline-none focus:border-brand-gold transition-colors resize-none" placeholder="Como podemos ajudar?"></textarea>
                     </div>
 
                     <button type="submit" class="w-full bg-brand-black text-white font-bold py-4 hover:bg-brand-gold hover:text-white transition-colors uppercase tracking-widest text-xs mt-4 rounded shadow-lg">
