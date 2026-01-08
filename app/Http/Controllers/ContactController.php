@@ -9,12 +9,8 @@ use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
-    /**
-     * Processa o formulário de contacto e envia o email.
-     */
     public function send(Request $request)
     {
-        // 1. Validação rigorosa (Senior Style)
         $validated = $request->validate([
             'name'    => 'required|string|min:3|max:255',
             'phone'   => 'nullable|string|max:20',
@@ -24,20 +20,19 @@ class ContactController extends Controller
         ]);
 
         try {
-            // 2. Envio do Email
-            // Destinatário definido conforme o email profissional do Diogo Maia
+            // Ao usar ShouldQueue no Mailable, o método send() 
+            // automaticamente despacha para a fila configurada.
             Mail::to('dmgmaia@remax.pt')->send(new ContactLead($validated));
 
-            // 3. Resposta de Sucesso
             return back()->with('success', 'A sua mensagem foi enviada com sucesso! Entraremos em contacto brevemente.');
 
         } catch (\Exception $e) {
-            // 4. Tratamento de Erro e Log (Essencial em produção)
-            Log::error('Erro ao enviar email de contacto: ' . $e->getMessage());
+            // Este log agora captura falhas no despacho da fila
+            Log::error('Erro ao despachar e-mail para a fila: ' . $e->getMessage());
 
             return back()
                 ->withInput()
-                ->with('error', 'Infelizmente ocorreu um erro ao enviar a sua mensagem. Por favor, tente novamente ou contacte-nos via WhatsApp.');
+                ->with('error', 'Ocorreu um erro técnico. Por favor, tente novamente ou use o WhatsApp.');
         }
     }
 }
