@@ -153,8 +153,8 @@
     {{-- BARRA DE AWARDS FLUTUANTE --}}
     <x-fixed-awards />
 
-    {{-- WHATSAPP --}}
-    <div class="fixed bottom-6 left-6 z-40">
+    {{-- WHATSAPP - AJUSTADO PARA MOBILE --}}
+    <div class="fixed bottom-24 md:bottom-6 left-6 z-40">
         <a href="https://wa.me/351910739610" target="_blank"
            class="w-12 h-12 bg-[#25D366] text-white shadow-lg rounded-full flex items-center justify-center hover:bg-[#128C7E] transition-all duration-300 hover:scale-110"
            title="WhatsApp">
