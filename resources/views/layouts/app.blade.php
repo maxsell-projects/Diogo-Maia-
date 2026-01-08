@@ -78,7 +78,6 @@
                 
                 {{-- Coluna 1: Logo e Descrição --}}
                 <div class="flex flex-col items-center md:items-start">
-                    {{-- AQUI ESTÁ A MUDANÇA: Logo em vez de Texto --}}
                     <a href="{{ route('home') }}" class="block w-48 mb-6 transition-opacity hover:opacity-80">
                         <img src="{{ asset('img/Ativo 1.png') }}" 
                              alt="Diogo Maia" 
@@ -147,6 +146,10 @@
             </div>
         </div>
     </footer>
+
+    {{-- BARRA DE AWARDS FLUTUANTE (ADICIONADO AQUI) --}}
+    <x-fixed-awards />
+    {{-- FIM DA BARRA --}}
 
     <div class="fixed bottom-6 left-6 z-40">
         <a href="https://wa.me/351910739610" target="_blank"

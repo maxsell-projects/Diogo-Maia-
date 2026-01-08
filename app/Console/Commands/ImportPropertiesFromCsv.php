@@ -13,21 +13,17 @@ use Illuminate\Support\Str;
 class ImportPropertiesFromCsv extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
-     * @var string
+     * Assinatura do comando.
      */
     protected $signature = 'properties:import-csv {file=Main.csv : O nome do arquivo CSV na pasta storage/app}';
 
     /**
-     * The console command description.
-     *
-     * @var string
+     * Descrição do comando.
      */
     protected $description = 'Importa imóveis de um arquivo CSV e baixa as imagens em alta qualidade.';
 
     /**
-     * Execute the console command.
+     * Execução do comando.
      */
     public function handle()
     {
@@ -39,9 +35,10 @@ class ImportPropertiesFromCsv extends Command
             return 1;
         }
 
+        // Garante que existe um usuário para associar o imóvel
         $user = User::first();
         if (!$user) {
-            $this->error('Nenhum usuário encontrado. Crie um usuário antes de importar.');
+            $this->error('Nenhum usuário encontrado. Rode php artisan db:seed ou crie um usuário antes de importar.');
             return 1;
         }
 
@@ -56,10 +53,13 @@ class ImportPropertiesFromCsv extends Command
         while (($row = fgetcsv($file)) !== false) {
             $getVal = fn($key) => $row[$headerMap[$key] ?? -1] ?? null;
 
+            // Limpa a referência (Ex: "id. 123" vira "123")
             $reference = str_replace('id. ', '', $getVal('ID'));
             $title = $getVal('Title');
 
-            // Pula se já existe
+            if (!$title) continue;
+
+            // Evita duplicados
             if (Property::where('reference_code', $reference)->exists()) {
                 $this->warn("Imóvel {$reference} já existe. Pulando...");
                 continue;
@@ -68,22 +68,24 @@ class ImportPropertiesFromCsv extends Command
             $this->info("Processando: {$title} ({$reference})");
 
             // --- TRATAMENTO DE DADOS ---
-            $price = (float) preg_replace('/[^0-9]/', '', $getVal('Price'));
-            $area = (float) preg_replace('/[^0-9]/', '', $getVal('Area'));
+            $price = (float) preg_replace('/[^0-9.]/', '', str_replace(',', '.', $getVal('Price')));
+            $area = (float) preg_replace('/[^0-9.]/', '', str_replace(',', '.', $getVal('Area')));
             $bedrooms = (int) preg_replace('/[^0-9]/', '', $getVal('Bedrooms'));
             $bathrooms = (int) preg_replace('/[^0-9]/', '', $getVal('Bathrooms'));
             
+            // Lógica simples de tipo baseada no título
             $type = 'apartment';
-            if (Str::contains(Str::lower($title), ['moradia', 'casa', 'vivenda'])) $type = 'house';
-            if (Str::contains(Str::lower($title), ['terreno', 'lote'])) $type = 'land';
-            if (Str::contains(Str::lower($title), ['loja', 'comercial'])) $type = 'store';
+            $lowerTitle = Str::lower($title);
+            if (Str::contains($lowerTitle, ['moradia', 'casa', 'vivenda'])) $type = 'house';
+            if (Str::contains($lowerTitle, ['terreno', 'lote'])) $type = 'land';
+            if (Str::contains($lowerTitle, ['loja', 'comercial', 'escritório'])) $type = 'store';
 
             // --- DOWNLOAD CAPA (HD) ---
             $rawCoverUrl = $getVal('Main Image');
             $coverPath = null;
             
             if ($rawCoverUrl) {
-                // O PULO DO GATO: Troca 'ds-l' por 'l-feat' para pegar a imagem HD
+                // Tenta pegar a imagem em HD substituindo o prefixo de redimensionamento
                 $hdCoverUrl = str_replace('/ds-l/', '/l-feat/', $rawCoverUrl);
                 $coverPath = $this->downloadImage($hdCoverUrl, $reference, 'cover');
             }
@@ -96,31 +98,29 @@ class ImportPropertiesFromCsv extends Command
                 'description' => $getVal('Description'),
                 'price' => $price,
                 'location' => $getVal('Location'),
+                'city' => $getVal('Location'), // Preenche city para o filtro de localização funcionar
                 'type' => $type,
-                'status' => 'available',
+                'status' => 'available', // Status padrão da planilha
                 'bedrooms' => $bedrooms,
                 'bathrooms' => $bathrooms,
                 'area_gross' => $area,
                 'energy_rating' => $getVal('Energy Class'),
                 'reference_code' => $reference,
                 'cover_image' => $coverPath,
-                'features' => [],
+                'is_visible' => true, // Importante: Garante que apareça no site imediatamente
             ]);
 
             // --- DOWNLOAD GALERIA (HD) ---
             for ($i = 1; $i <= 24; $i++) {
                 $rawImgUrl = $getVal("Image{$i}");
                 if ($rawImgUrl) {
-                    // O PULO DO GATO: Troca 'ds-l' por 'l-feat' aqui também
                     $hdImgUrl = str_replace('/ds-l/', '/l-feat/', $rawImgUrl);
-                    
                     $imgPath = $this->downloadImage($hdImgUrl, $reference, "gallery_{$i}");
                     
                     if ($imgPath) {
                         PropertyImage::create([
                             'property_id' => $property->id,
-                            'path' => $imgPath, // Campo correto 'path'
-                            'order' => $i
+                            'path' => $imgPath,
                         ]);
                     }
                 }
@@ -130,27 +130,27 @@ class ImportPropertiesFromCsv extends Command
         }
 
         fclose($file);
-        $this->info("Sucesso! {$count} imóveis importados em alta qualidade.");
+        $this->info("Sucesso! {$count} imóveis importados e visíveis no site.");
         return 0;
     }
 
+    /**
+     * Lógica de download com Fallback
+     */
     private function downloadImage($url, $reference, $suffix)
     {
         try {
-            // Timeout maior (15s) pois imagens HD demoram mais
-            $response = Http::timeout(15)->get($url);
+            $response = Http::timeout(20)->get($url);
             
+            // Se falhar a versão HD, tenta a original
             if ($response->failed()) {
-                // Fallback: Se falhar a HD (l-feat), tenta a original (ds-l)
-                // Isso evita erro se alguma imagem antiga não tiver versão HD
                 $fallbackUrl = str_replace('/l-feat/', '/ds-l/', $url);
-                $response = Http::timeout(15)->get($fallbackUrl);
+                $response = Http::timeout(20)->get($fallbackUrl);
             }
 
             if ($response->failed() || !$response->body()) return null;
 
-            $extension = 'jpg'; // Forçamos JPG pois a maioria vem assim
-            $filename = "properties/{$reference}/{$reference}_{$suffix}.{$extension}";
+            $filename = "properties/{$reference}/{$reference}_{$suffix}.jpg";
 
             Storage::disk('public')->put($filename, $response->body());
 

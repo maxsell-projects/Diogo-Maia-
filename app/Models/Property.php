@@ -10,7 +10,8 @@ class Property extends Model
     use HasFactory;
 
     protected $fillable = [
-        'reference_code', // Adicionado: Identificador visual
+        'user_id',       // Necessário para a importação via CLI
+        'reference_code', 
         'title', 
         'slug', 
         'description', 
@@ -54,10 +55,10 @@ class Property extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'area_gross' => 'decimal:2',
-        'area_useful' => 'decimal:2', // Adicionado para consistência
-        'area_land' => 'decimal:2',   // Adicionado para consistência
+        'area_useful' => 'decimal:2', 
+        'area_land' => 'decimal:2',   
         
-        // Booleanos - Mapeamento completo para evitar retornos 0/1
+        // Booleanos - Garante retorno true/false em vez de 1/0
         'has_pool' => 'boolean',
         'has_garden' => 'boolean',
         'has_lift' => 'boolean',
@@ -72,8 +73,19 @@ class Property extends Model
         'is_visible' => 'boolean',
     ];
 
+    /**
+     * Relacionamento com a galeria de imagens
+     */
     public function images()
     {
         return $this->hasMany(PropertyImage::class);
+    }
+
+    /**
+     * Relacionamento com o Usuário (Dono/Consultor)
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
