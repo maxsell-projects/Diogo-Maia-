@@ -116,7 +116,7 @@
                     <p class="text-sm text-gray-500 font-light leading-relaxed mb-6 flex-grow">
                         O mercado de luxo está a mudar. Já não se define apenas pelo preço, pelo tamanho do imóvel ou pelo prestígio da localização. O verdadeiro investidor de luxo em 2025 procura algo mais profundo: estabilidade, privacidade...
                     </p>
-                    <a href="{{ route('blog.show') }}" class="text-[10px] uppercase tracking-widest font-bold hover:text-brand-gold mt-auto inline-block">Continuar Lendo »</a>
+                    <a href="{{ route('blog.show') }}" class="text-[10px] uppercase tracking-widest font-bold hover:text-brand-gold mt-auto inline-block">Continuar a ler »</a>
                 </div>
             </article>
 
@@ -133,7 +133,7 @@
                     <p class="text-sm text-gray-500 font-light leading-relaxed mb-6 flex-grow">
                         O investimento imobiliário de luxo deixou de depender apenas da intuição ou da localização privilegiada. Atualmente, a diferença entre uma compra promissora e uma oportunidade perdida está na capacidade de interpretar dados e tendências. É aqui...
                     </p>
-                    <a href="{{ route('blog.show-intelligence') }}" class="text-[10px] uppercase tracking-widest font-bold hover:text-brand-gold mt-auto inline-block">Continuar Lendo »</a>
+                    <a href="{{ route('blog.show-intelligence') }}" class="text-[10px] uppercase tracking-widest font-bold hover:text-brand-gold mt-auto inline-block">Continuar a ler »</a>
                 </div>
             </article>
 
@@ -150,7 +150,7 @@
                     <p class="text-sm text-gray-500 font-light leading-relaxed mb-6 flex-grow">
                         O mercado imobiliário de luxo em Portugal vive uma fase de maturidade e expansão. Zonas como Lisboa, Cascais e Algarve destacam-se como três eixos de valor que sustentam o crescimento premium do país. A combinação entre...
                     </p>
-                    <a href="{{ route('blog.show-locations') }}" class="text-[10px] uppercase tracking-widest font-bold hover:text-brand-gold mt-auto inline-block">Continuar Lendo »</a>
+                    <a href="{{ route('blog.show-locations') }}" class="text-[10px] uppercase tracking-widest font-bold hover:text-brand-gold mt-auto inline-block">Continuar a ler »</a>
                 </div>
             </article>
 
