@@ -22,7 +22,19 @@
 
         <div class="flex flex-col gap-5 items-center max-h-[70vh] overflow-y-auto scrollbar-hide py-2 transition-opacity duration-300" :class="open ? 'opacity-100' : 'opacity-0 pointer-events-none'">
             @php
-                $awards = ['1-1.png', '2-1.png', '3-1.png', '4-1.png', '5-1.png', '6.png', '7.png', '8.png'];
+                // [Alterado] Adicionados 'diamond.png' e 'titan.png' no topo para destaque
+                $awards = [
+                    'titan.png',
+                    'diamond.png',
+                    '1-1.png', 
+                    '2-1.png', 
+                    '3-1.png', 
+                    '4-1.png', 
+                    '5-1.png', 
+                    '6.png', 
+                    '7.png', 
+                    '8.png'
+                ];
             @endphp
 
             @foreach($awards as $image)
