@@ -2,6 +2,7 @@
 
 @section('content')
 
+{{-- [Mantido] Altura original restaurada: h-[70vh] --}}
 <div x-data="{ 
     activeImage: '{{ $property->cover_image ? asset('storage/' . $property->cover_image) : asset('img/porto.jpg') }}',
     images: [
@@ -47,7 +48,8 @@
                         </span>
                         
                         @if($property->reference_code)
-                            <span class="bg-white text-gray-900 px-4 py-1 text-xs uppercase tracking-widest font-bold border-l-4 border-[#c5a059] shadow-lg inline-block">
+                            {{-- [Alterado] text-xs -> text-[10px] (Mais discreto, alinhado com o pill anterior) --}}
+                            <span class="bg-white text-gray-900 px-3 py-1 text-[10px] uppercase tracking-widest font-bold border-l-4 border-[#c5a059] shadow-lg inline-block">
                                 Ref. {{ $property->reference_code }}
                             </span>
                         @endif
@@ -161,7 +163,8 @@
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-[10px] text-gray-400 uppercase tracking-[0.2em]">Valor de Investimento</p>
                     @if($property->reference_code)
-                        <p class="text-sm font-bold text-[#c5a059] uppercase tracking-widest border-b-2 border-[#c5a059] pb-1">Ref: {{ $property->reference_code }}</p>
+                        {{-- [Alterado] text-sm -> text-xs (Reduzido um pouco) --}}
+                        <p class="text-xs font-bold text-[#c5a059] uppercase tracking-widest border-b-2 border-[#c5a059] pb-1">Ref: {{ $property->reference_code }}</p>
                     @endif
                 </div>
                 
