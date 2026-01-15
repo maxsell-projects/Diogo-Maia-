@@ -12,11 +12,20 @@ use Illuminate\Validation\Rule;
 class PropertyController extends Controller
 {
     /**
-     * Listagem Administrativa
+     * Listagem Administrativa com Busca
      */
-    public function index()
+    public function index(Request $request)
     {
-        $properties = Property::latest()->paginate(10);
+        $properties = Property::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $term = $request->search;
+                $query->where('reference_code', 'like', "%{$term}%")
+                      ->orWhere('title', 'like', "%{$term}%");
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         return view('admin.properties.index', compact('properties'));
     }
 

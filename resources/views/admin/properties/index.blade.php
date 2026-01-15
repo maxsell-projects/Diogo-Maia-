@@ -60,13 +60,35 @@
                 </a>
             </div>
 
+            <div class="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                <form action="{{ route('admin.properties.index') }}" method="GET" class="flex gap-4">
+                    <div class="relative flex-1 max-w-md">
+                        <input 
+                            type="text" 
+                            name="search" 
+                            value="{{ request('search') }}" 
+                            placeholder="Buscar por ID (Referência) ou Título..." 
+                            class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#c5a059] focus:ring-1 focus:ring-[#c5a059] text-sm"
+                        >
+                    </div>
+                    
+                    <button type="submit" class="bg-neutral-900 text-white px-6 py-2 rounded text-sm font-medium hover:bg-neutral-700 transition">
+                        Pesquisar
+                    </button>
+
+                    @if(request('search'))
+                        <a href="{{ route('admin.properties.index') }}" class="flex items-center text-red-500 text-sm hover:underline px-4">
+                            Limpar Filtros
+                        </a>
+                    @endif
+                </form>
+            </div>
             <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-500 font-medium">
                         <tr>
                             <th class="px-6 py-4">Capa</th>
-                            <th class="px-6 py-4">Título</th>
-                            <th class="px-6 py-4">Preço</th>
+                            <th class="px-6 py-4">ID / Título</th> <th class="px-6 py-4">Preço</th>
                             <th class="px-6 py-4">Localização</th>
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4 text-right">Ações</th>
@@ -82,7 +104,14 @@
                                     @endif
                                 </div>
                             </td>
-                            <td class="px-6 py-4 font-medium text-gray-800">{{ Str::limit($property->title, 40) }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="font-medium text-gray-800">{{ Str::limit($property->title, 35) }}</span>
+                                    @if($property->reference_code)
+                                        <span class="text-[10px] text-gray-400 font-mono mt-0.5">REF: {{ $property->reference_code }}</span>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="px-6 py-4 text-gray-600">€ {{ number_format($property->price, 0, ',', '.') }}</td>
                             <td class="px-6 py-4 text-gray-500">{{ $property->location }}</td>
                             <td class="px-6 py-4">
